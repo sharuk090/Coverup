@@ -1,0 +1,143 @@
+//
+//  Pin.swift
+//  CoverUp
+//
+//  Created by Osman MB on 2021-12-12.
+//
+
+import SwiftUI
+
+struct Pin: View {
+    
+        var maxDigits: Int = 4
+        var label = "Touch ID or Enter Passcode"
+        
+        @State var pin: String = ""
+        @State var showPin = false
+        @State var isDisabled = false
+        
+        public var body: some View {
+            VStack(spacing: 2.0) {
+                Text(label).font(.title)
+                ZStack {
+                    pinDots
+                    backgroundField
+                }
+                showPinStack
+            }
+            
+        }
+        
+        private var pinDots: some View {
+            HStack {
+                Spacer()
+                ForEach(0..<maxDigits) { index in
+                    Image(systemName: self.getImageName(at: index))
+                        .font(.system(size: 32.0, weight: .thin, design: .default))
+                    Spacer()
+                }
+            }
+        }
+        
+        private var backgroundField: some View {
+            let boundPin = Binding<String>(get: { self.pin }, set: { newValue in
+                self.pin = newValue
+                self.submitPin()
+            })
+            
+            return TextField("", text: boundPin, onCommit: submitPin)
+          
+               .accentColor(.clear)
+               .foregroundColor(.clear)
+               .keyboardType(.numberPad)
+               .disabled(isDisabled)
+          
+    
+        }
+        
+        private var showPinStack: some View {
+            HStack {
+                Spacer()
+                if !pin.isEmpty {
+                    showPinButton
+                }
+            }
+            .frame(height: 50.0)
+            .padding([.trailing])
+        }
+        
+        private var showPinButton: some View {
+            Button(action: {
+                self.showPin.toggle()
+            }, label: {
+                self.showPin ?
+                    Image(systemName: "eye.slash.fill").foregroundColor(.primary) :
+                    Image(systemName: "eye.fill").foregroundColor(.primary)
+            })
+        }
+        
+        private func submitPin() {
+            guard !pin.isEmpty else {
+                showPin = false
+                return
+            }
+            
+            if pin.count == maxDigits {
+                isDisabled = true
+                
+                
+            }
+            
+            
+            if pin.count > maxDigits {
+                pin = String(pin.prefix(maxDigits))
+                submitPin()
+            }
+        }
+        
+        private func getImageName(at index: Int) -> String {
+            if index >= self.pin.count {
+                return "circle"
+            }
+            
+            if self.showPin {
+                return self.pin.digits[index].numberString + ".circle"
+            }
+            
+            return "circle.fill"
+        }
+    }
+
+    extension String {
+        
+        var digits: [Int] {
+            var result = [Int]()
+            
+            for char in self {
+                if let number = Int(String(char)) {
+                    result.append(number)
+                }
+            }
+            
+            return result
+        }
+        
+    }
+
+    extension Int {
+        
+        var numberString: String {
+            
+            guard self < 10 else { return "0" }
+            
+            return String(self)
+        }
+    }
+struct Pin_Previews: PreviewProvider {
+    static var previews: some View {
+        Pin()
+            .preferredColorScheme(.dark)
+        Pin()
+        
+    }
+}
